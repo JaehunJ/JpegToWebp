@@ -16,7 +16,10 @@ class ImageRecyclerViewAdapter(val context: Context, val callback: (Int) -> Unit
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
         val item = list[position]
-        holder.bind(context, item) { callback(position) }
+        holder.bind(context, item){
+            removeData(it)
+            callback(it)
+        }
     }
 
     override fun getItemCount() = list.count()
@@ -59,10 +62,11 @@ class ImageRecyclerViewAdapter(val context: Context, val callback: (Int) -> Unit
             }
         }
 
-        fun bind(context: Context, uri: Uri, delete: () -> Unit) {
+        fun bind(context: Context, uri: Uri, delete: (Int) -> Unit) {
             Glide.with(context).load(uri).into(b.ivProduct)
             b.btnDelete.setOnClickListener {
-                delete()
+                val pos = adapterPosition
+                delete(pos)
             }
         }
     }

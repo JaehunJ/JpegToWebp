@@ -30,6 +30,20 @@ class FragmentMainViewModel : ViewModel() {
         list?.let{
             list.add(uri)
             uriList.postValue(list.toMutableList())
+            cnt.postValue(list.count())
+        }
+    }
+
+    fun addList(uris:MutableList<Uri>){
+        val list = uriList.value
+
+        list?.let{
+            uris.forEach {uri->
+                it.add(uri)
+            }
+
+            uriList.postValue(it.toMutableList())
+            cnt.postValue(list.count())
         }
     }
     fun removeItem(pos:Int){
@@ -37,6 +51,7 @@ class FragmentMainViewModel : ViewModel() {
         list?.let{
             it.removeAt(pos)
             uriList.postValue(list.toMutableList())
+            cnt.postValue(list.count())
         }
     }
 }

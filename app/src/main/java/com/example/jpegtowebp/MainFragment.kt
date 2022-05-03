@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -86,24 +87,22 @@ class MainFragment : Fragment() {
         initBinding()
     }
 
-    fun initBinding(){
-        viewModel.uriList.observe(viewLifecycleOwner){
-            Log.e("#debug", "call add")
-            it?.let{
-                adapter.addData(it.last())
-            }
-        }
-
+    private fun initBinding(){
         viewModel.ratio.observe(viewLifecycleOwner){
             it?.let{
                 binding.tvRatio.text = (it*100f).toInt().toString()
             }
 
         }
+
+        viewModel.uriList.observe(viewLifecycleOwner){
+            it?.let{list->
+                binding.btnOk.isEnabled = list.isNotEmpty()
+            }
+        }
     }
 
     fun delete(pos:Int){
-        adapter.removeData(pos)
         viewModel.removeItem(pos)
     }
 
@@ -112,9 +111,9 @@ class MainFragment : Fragment() {
             type = MediaStore.Images.Media.CONTENT_TYPE
             data = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             putExtra(Intent.EXTRA_MIME_TYPES, "image/jpeg")
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
         }
         selectedPictureActivityResultLauncher.launch(intent)
-
     }
 
     fun selectedImage(res: ActivityResult) {
@@ -123,8 +122,20 @@ class MainFragment : Fragment() {
 
             imageData?.let {
                 val d = it.data
-                d?.let{ uri->
-                    viewModel.addList(uri)
+                val clip = it.clipData
+
+                //single
+                if(d != null){
+                    adapter.addData(d)
+                    viewModel.addList(d)
+                }else if(clip != null){ //multiple
+                    val list = mutableListOf<Uri>()
+                    val cnt = clip.itemCount
+                    for(i in 0 until cnt){
+                        list.add(clip.getItemAt(i).uri)
+                    }
+                    adapter.addData(list)
+                    viewModel.addList(list)
                 }
             }
         }
